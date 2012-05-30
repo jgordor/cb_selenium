@@ -1,5 +1,5 @@
 {application, cb_selenium, [
-        {description, "My Awesome Web Framework"},
+        {description, "Erlang Chicago Boss Selenium Testing Integration"},
         {vsn, "0.0.1"},
         {modules, []},
         {registered, []},
