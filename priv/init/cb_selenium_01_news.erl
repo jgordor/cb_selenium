@@ -6,6 +6,17 @@
 % return a list of WatchIDs that should be cancelled in the stop
 % function below (stop is executed if the script is ever reloaded).
 init() ->
+    error_logger:info_msg("Starting selenium server...~n"),
+    Path = boss_env:get_env(cb_selenium, path, "../cb_selenium"),
+    Log = boss_env:get_env(cb_selenium, selenium_server_log_file, "/tmp/selenium_server.log"),
+    StartCmd = "cd " ++ Path ++ "/priv/selenium; java -jar selenium-server-standalone-2.1.0.jar -browserSessionReuse -log " ++ Log ++ " -debug > /dev/null 2>& 1 &",
+    StartOutput = os:cmd(StartCmd),
+    case string:tokens(StartOutput, "\n") of
+        ["0"] ->
+            error_logger:info_msg("Selenium started succefully...~n");
+        _ ->
+            error_logger:info_msg("Error starting Selenium server~n~p~n", [StartOutput])
+    end,
     {ok, []}.
 
 stop(ListOfWatchIDs) ->
