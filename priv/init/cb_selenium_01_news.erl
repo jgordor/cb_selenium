@@ -9,7 +9,7 @@ init() ->
     error_logger:info_msg("Starting selenium server...~n"),
     Path = boss_env:get_env(cb_selenium, path, "../cb_selenium"),
     Log = boss_env:get_env(cb_selenium, selenium_server_log_file, "/tmp/selenium_server.log"),
-    StartCmd = "cd " ++ Path ++ "/priv/selenium; java -jar selenium-server-standalone-2.1.0.jar -browserSessionReuse -log " ++ Log ++ " -debug > /dev/null 2>& 1 &",
+    StartCmd = "cd " ++ Path ++ "/priv/selenium; java -jar selenium-server-standalone-2.21.0.jar -browserSessionReuse -log " ++ Log ++ " -debug > /dev/null 2>& 1 &",
     StartOutput = os:cmd(StartCmd),
     case string:tokens(StartOutput, "\n") of
         ["0"] ->
