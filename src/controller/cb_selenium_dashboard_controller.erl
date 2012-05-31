@@ -9,7 +9,9 @@
 -module(cb_selenium_dashboard_controller, [Req]).
 
 %% API
--export([index/2]).
+-export([index/2,
+         lists/2
+        ]).
 
 %% API_BOSS
 -default_action(index).
@@ -19,4 +21,7 @@
 %%%===================================================================
 
 index('GET', []) ->
+    {ok, []}.
+
+lists('GET', []) ->
     {ok, []}.
