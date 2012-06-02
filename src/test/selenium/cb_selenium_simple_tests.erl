@@ -7,59 +7,39 @@
 %%%----------------------------------------------------------------------------
 -module(cb_selenium_simple_tests).
 -include_lib("eunit/include/eunit.hrl").
+-export([dashboard/2]).
 
 %%%============================================================================
 %%% API
 %%%============================================================================
 
 suite_test_()->
-    Suite = 
-    {foreach, local,
-      fun setup/0,
-      tests()
-     },
-    Suite.
+    [{setup,
+      fun() -> setup_session(B) end, 
+      fun close_session/1,
+      api_tests(B)} || B <- cb_sel:get_browsers()].
 
-tests() -> %{timeout, 60, fun start_session/0}
-    [     
-     {"Home Page",
-      ?_test(home())},
-     {"Home Page with Firefox",
-      ?_test(home_firefox())}
-    ].
-
-%%--------------------------------------------------------------------
-%% @doc home() Home Comercial Website
-%%--------------------------------------------------------------------
-home() -> 
-    SSH = open_session(),
-    {ok, no_content} = webdriver_remote:get(SSH, "http://localhost:8001/selenium"),
-    {ok, Screen1} = webdriver_remote:screenshot(SSH),
-    file:write_file("/home/jose.gordo/tmp/sel/screen3.png", base64:decode(Screen1)),
-    {ok, [Id]} = webdriver_remote:find_elements(SSH, xpath, "//h2"),
-    ?assertEqual({ok, <<"Dashboard">>}, webdriver_remote:text(SSH, Id)),
-    ok.
+api_tests(Browser) ->
+    Tests = [
+	     dashboard
+	    ],
+    fun(X) ->
+	    [{timeout, 120, 
+	      {lists:flatten(io_lib:format("~s with ~s",[T,Browser])), fun() -> ?MODULE:T(Browser,X) end } 
+	     } || T <- Tests]
+    end.
 
 %%--------------------------------------------------------------------
-%% @doc home_firefox() Home Comercial Website
+%% @doc dashboard() Dashboard
 %%--------------------------------------------------------------------
-home_firefox() -> 
-    error_logger:info_msg("arrancamos...~n"),
-    SSF = open_session(firefox),
-    {error, []} = webdriver_remote:speed(SSF, 'SLOW'),
-    {ok, no_content} = webdriver_remote:get(SSF, "http://localhost:8001/selenium"),
-    {ok, Screen1} = webdriver_remote:screenshot(SSF),
-    file:write_file("/home/jose.gordo/tmp/sel/screen1.png", base64:decode(Screen1)),
-    {ok, [Id]} = webdriver_remote:find_elements(SSF, xpath, "//h2"),
-    ?assertEqual({ok, <<"Dashboard">>}, webdriver_remote:text(SSF, Id)),
-    {ok, no_content} = webdriver_remote:timeout(SSF, implicit_wait, 5000),
-    timer:sleep(1000),
-    {ok, [Element]} = webdriver_remote:find_elements(SSF, id, "first_link"),
-    {ok, no_content} = webdriver_remote:click(SSF, Element),
-    {ok, Screen2} = webdriver_remote:screenshot(SSF),
-    file:write_file("/home/jose.gordo/tmp/sel/screen2.png", base64:decode(Screen2)),
-    {ok, [Id2]} = webdriver_remote:find_elements(SSF, xpath, "//h2"),
-    ?assertEqual({ok, <<"Lists">>}, webdriver_remote:text(SSF, Id2)),
+dashboard(_B, S) -> 
+    {ok, no_content} = webdriver_remote:get(S, "http://localhost:8001/selenium"),
+    {ok, [Id]} = webdriver_remote:find_elements(S, xpath, "//h2"),
+    ?assertEqual({ok, <<"Dashboard">>}, webdriver_remote:text(S, Id)),
+	{ok, [Element]} = webdriver_remote:find_elements(S, id, "first_link"),
+	{ok, no_content} = webdriver_remote:click(S, Element),
+	{ok, [Id2]} = webdriver_remote:find_elements(S, xpath, "//h2"),
+	?assertEqual({ok, <<"Lists">>}, webdriver_remote:text(S, Id2)),
     ok.
 
 %% ===================================================================
@@ -69,14 +49,19 @@ home_firefox() ->
 %%--------------------------------------------------------------------
 %% @doc Setup each test set
 %%--------------------------------------------------------------------
+
 setup()->
     ok.
 
-open_session() ->
-    open_session(htmlunit).
-open_session(htmlunit) ->
-    {ok, Session} = webdriver_remote:session(cb_sel:get_host(), cb_sel:get_port(),[{browserName, htmlunit}, {version, <<"">>}, {platform, 'ANY'}]),
-    Session;
-open_session(firefox) ->
-    {ok, Session} = webdriver_remote:session(cb_sel:get_host(), cb_sel:get_port(), [{browserName, firefox}]),
-    Session.
+setup_session(Browser) ->
+    {ok, Session} = webdriver_remote:session(cb_sel:get_host(),
+											 cb_sel:get_port(),
+											 [{browserName, Browser}, 
+											  {javascriptEnabled, true},
+											  {version, <<"">>}, 
+											  {platform, 'ANY'}]
+											),
+	Session.
+
+close_session(Session) ->    
+	{ok, no_content} = webdriver_remote:quit(Session).
