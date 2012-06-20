@@ -21,7 +21,7 @@ start_selenium_server() ->
     test_selenium_server(?MAX_SERVER_START_RETRIES).
 
 test_selenium_server(0) -> 
-    io:format("~n[FATAL] - Connection to selenium server failed.~n"),
+    io:format("[FATAL] - Connection to selenium server failed.~n"),
     halt(1);
 test_selenium_server(Retries) ->
     %% Try to connect
@@ -31,10 +31,10 @@ test_selenium_server(Retries) ->
             timer:sleep(500),
             test_selenium_server(Retries - 1);
         Session ->
-            io:format("~n[OK] - Connection to selenium server established.~n"),
+            io:format("[OK] - Connection to selenium server established.~n"),
             close_session(Session);
         _ ->
-            io:format("~n[FATAL] - Unhandled error.~n"),
+            io:format("[FATAL] - Unhandled error.~n"),
             halt(1)
     end.
 
@@ -66,20 +66,22 @@ setup_session(Browser) ->
             {error, unhandled_error}
     end.
 
-close_session(Session) ->   
-    {ok, no_content} = webdriver_remote:quit(Session).
+close_session(Session) -> ok.  
+    %{ok, no_content} = webdriver_remote:quit(Session).
 
 assert_command(Name, Expected, Result) ->
     case Result of
-    Expected -> ok;
-    {ok, _Other} -> exit({bad_result, Expected, Result});
-    {error, {13, Message}} = E -> 
-        case proplists:get_value(<<"screen">>, Message) of
-        undefined -> 
+        Expected -> 
             ok;
-        Screen ->
-            file:write_file("/tmp/" ++ Name ++ ".png", base64:decode(Screen))
-        end,
-        exit(E);
-    X -> X
+        {ok, _Other} -> 
+            exit({bad_result, Expected, Result});
+        {error, {13, Message}} = E ->
+            case proplists:get_value(<<"screen">>, Message) of
+                undefined ->
+                    ok;
+                Screen ->
+                    file:write_file("/tmp/" ++ Name ++ ".png", base64:decode(Screen))
+            end,
+            exit(E);
+        X -> X
     end.
