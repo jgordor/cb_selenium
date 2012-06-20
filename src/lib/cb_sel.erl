@@ -1,10 +1,12 @@
 -module(cb_sel).
+-include_lib("eunit/include/eunit.hrl").
 -export([start_selenium_server/0,
          get_host/0,
 		 get_port/0,
 		 get_browsers/0,
          setup_session/1,
          close_session/1,
+         assert_command_ok/2,
          assert_command/3
 		]).
 -define(MAX_SERVER_START_RETRIES, 20).
@@ -68,6 +70,25 @@ setup_session(Browser) ->
 
 close_session(Session) -> ok.  
     %{ok, no_content} = webdriver_remote:quit(Session).
+
+assert_command_ok(Name, Result) ->
+    error_logger:error_msg("AAAAAAAAAAAAAAAAAAAAaa~nRumbera el result=~n~p~n", [Result]),
+    case Result of
+        {ok, _} -> 
+            ok;
+        _ ->
+            case Result of
+                {error, {13, Message}} = E ->
+                    case proplists:get_value(<<"screen">>, Message) of
+                        undefined ->
+                            ok;
+                        Screen ->
+                            file:write_file("/tmp/" ++ Name ++ ".png", base64:decode(Screen))
+                    end,
+                    exit(E);
+                X -> ?assertEqual({ok, any}, X)
+            end
+    end.
 
 assert_command(Name, Expected, Result) ->
     case Result of
