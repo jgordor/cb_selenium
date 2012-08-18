@@ -6,7 +6,7 @@
 % return a list of WatchIDs that should be cancelled in the stop
 % function below (stop is executed if the script is ever reloaded).
 init() ->
-    io:format("Starting selenium server"),
+    io:format("Starting selenium server~n"),
     cb_sel:start_selenium_server(),
     {ok, []}.
 

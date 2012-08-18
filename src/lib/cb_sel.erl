@@ -12,13 +12,15 @@
 -define(MAX_SERVER_START_RETRIES, 20).
 
 start_selenium_server() ->
+    error_logger:tty(false),
+    gen_event:delete_handler(error_logger,sasl_report_tty_h,swap),
     Path = boss_env:get_env(cb_selenium, path, "../cb_selenium"),
     Log = boss_env:get_env(cb_selenium, selenium_server_log_file, "/tmp/selenium_server.log"),
     Debug = case boss_env:get_env(cb_selenium, debug, false) of
                 true -> " -debug";
                 false -> ""
             end,
-    StartCmd = "cd " ++ Path ++ "/priv/selenium; java -jar selenium-server-standalone-2.21.0.jar -browserSessionReuse -log " ++ Log ++ Debug ++ " > /dev/null 2>& 1 &",
+    StartCmd = "cd " ++ Path ++ "/priv/selenium; java -jar selenium-server-standalone-2.25.0.jar -browserSessionReuse -log " ++ Log ++ Debug ++ " > /dev/null 2>& 1 &",
     StartOutput = os:cmd(StartCmd),
     test_selenium_server(?MAX_SERVER_START_RETRIES).
 
@@ -57,8 +59,9 @@ setup_session(Browser) ->
                                    {platform, 'ANY'}]) of
         {ok, Session} ->
             io:format("~nsetup_session_OK.~n"),
+            %{ok,null} = webdriver_remote:execute(Session, "window.resizeTo(1920,1080);"),
             %% @TODO: make speed boss.config configurable
-            {error, []} = webdriver_remote:speed(Session, 'SLOW'),
+            %%{error, []} = webdriver_remote:speed(Session, 'SLOW'),
             Session;
         {error,econnrefused} -> 
             io:format("~nsetup_session_econnrefused.~n"),
@@ -68,11 +71,10 @@ setup_session(Browser) ->
             {error, unhandled_error}
     end.
 
-close_session(Session) -> ok.  
-    %{ok, no_content} = webdriver_remote:quit(Session).
+close_session(Session) ->  
+    {ok, no_content} = webdriver_remote:quit(Session).
 
 assert_command_ok(Name, Result) ->
-    error_logger:error_msg("AAAAAAAAAAAAAAAAAAAAaa~nRumbera el result=~n~p~n", [Result]),
     case Result of
         {ok, _} -> 
             ok;
@@ -83,7 +85,7 @@ assert_command_ok(Name, Result) ->
                         undefined ->
                             ok;
                         Screen ->
-                            file:write_file("/tmp/" ++ Name ++ ".png", base64:decode(Screen))
+                            file:write_file("/tmp/sel_" ++ Name ++ ".png", base64:decode(Screen))
                     end,
                     exit(E);
                 X -> ?assertEqual({ok, any}, X)
@@ -101,7 +103,7 @@ assert_command(Name, Expected, Result) ->
                 undefined ->
                     ok;
                 Screen ->
-                    file:write_file("/tmp/" ++ Name ++ ".png", base64:decode(Screen))
+                    file:write_file("/tmp/sel_" ++ Name ++ ".png", base64:decode(Screen))
             end,
             exit(E);
         X -> X
