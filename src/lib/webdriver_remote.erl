@@ -52,6 +52,7 @@
 -export([button_up/1]).
 -export([button_down/1]).
 -export([mouse_click/1, mouse_click/2]).
+-export([window_resize/3]).
 
 -define(CONTENT_TYPE,"application/json;charset=UTF-8").
 
@@ -274,7 +275,13 @@ mouse_click(Session, Button) ->
 		middle -> 1;
 		right -> 2
 	    end,
-    post(path(Session,"click"), to_json([{<<"button">>, Value}])).		    
+    post(path(Session,"click"), to_json([{<<"button">>, Value}])).		  
+
+window_resize(Session, X, Y) ->
+    {ok, Handle} = get_window_handle(Session),
+    post(path(Session,"window/" ++ binary_to_list(Handle) ++ "/size"), 
+         to_json([{<<"width">>, X}, {<<"height">>, Y}])
+        ).
 
 
 webelement_id({struct, [{<<"ELEMENT">>, Id}]}) ->
