@@ -53,6 +53,8 @@
 -export([button_down/1]).
 -export([mouse_click/1, mouse_click/2]).
 -export([window_resize/3]).
+-export([accept_alert/1]).
+-export([dismiss_alert/1]).
 
 -define(CONTENT_TYPE,"application/json;charset=UTF-8").
 
@@ -277,11 +279,20 @@ mouse_click(Session, Button) ->
 	    end,
     post(path(Session,"click"), to_json([{<<"button">>, Value}])).		  
 
+% POST /session/:sessionId/window/:windowHandle/size
 window_resize(Session, X, Y) ->
     {ok, Handle} = get_window_handle(Session),
     post(path(Session,"window/" ++ binary_to_list(Handle) ++ "/size"), 
          to_json([{<<"width">>, X}, {<<"height">>, Y}])
         ).
+
+% POST /session/:sessionId/accept_alert
+accept_alert(Session) ->
+    post(path(Session,"accept_alert"), " ").
+
+% POST /session/:sessionId/dismiss_alert
+dismiss_alert(Session) ->
+    post(path(Session,"dismiss_alert"), " ").
 
 
 webelement_id({struct, [{<<"ELEMENT">>, Id}]}) ->

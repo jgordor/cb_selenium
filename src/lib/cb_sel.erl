@@ -20,7 +20,7 @@ start_selenium_server() ->
                 true -> " -debug";
                 false -> ""
             end,
-    StartCmd = "cd " ++ Path ++ "/priv/selenium; java -jar selenium-server-standalone-2.25.0.jar -browserSessionReuse -log " ++ Log ++ Debug ++ " > /dev/null 2>& 1 &",
+    StartCmd = "cd " ++ Path ++ "/priv/selenium; java -jar selenium-server-standalone-2.28.0.jar -browserSessionReuse -log " ++ Log ++ Debug ++ " > /dev/null 2>& 1 &",
     StartOutput = os:cmd(StartCmd),
     test_selenium_server(?MAX_SERVER_START_RETRIES).
 
