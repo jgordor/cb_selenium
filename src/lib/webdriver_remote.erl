@@ -218,7 +218,7 @@ value(Session, Id, Value) when is_binary(Id) ->
 value(Session, Id, Value) ->
     NewValue = [unicode:characters_to_binary([E])  || E <- Value],
     post(path(Session, "element/" ++ Id ++ "/value"),
-     to_json([{<<"value">>, [NewValue]}])).
+     to_json([{<<"value">>, NewValue}])).
 
 -spec(switch_to_window(abstract_session(), string()) ->
 	     command_result()).
