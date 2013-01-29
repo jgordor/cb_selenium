@@ -35,6 +35,7 @@
 -export([get_attribute/3]).
 -export([click/2]).
 -export([value/2]).
+-export([value/3]).
 -export([submit/2]).
 -export([text/2]).
 -export([title/1]).
@@ -55,6 +56,7 @@
 -export([window_resize/3]).
 -export([accept_alert/1]).
 -export([dismiss_alert/1]).
+-export([within_frame/3]).
 
 -define(CONTENT_TYPE,"application/json;charset=UTF-8").
 
@@ -209,6 +211,15 @@ value(Session, Id) when is_binary(Id) ->
 value(Session, Id) ->
     request(get, path(Session, "element/" ++ Id ++ "/value"), []).
 
+-spec(value(abstract_session(), binary()|string(), string()) ->
+          command_result()).
+value(Session, Id, Value) when is_binary(Id) ->
+    value(Session, binary_to_list(Id), Value);
+value(Session, Id, Value) ->
+    NewValue = [unicode:characters_to_binary([E])  || E <- Value],
+    post(path(Session, "element/" ++ Id ++ "/value"),
+     to_json([{<<"value">>, [NewValue]}])).
+
 -spec(switch_to_window(abstract_session(), string()) ->
 	     command_result()).
 switch_to_window(Session, Name) ->
@@ -293,6 +304,14 @@ accept_alert(Session) ->
 % POST /session/:sessionId/dismiss_alert
 dismiss_alert(Session) ->
     post(path(Session,"dismiss_alert"), " ").
+
+within_frame(Session,[],F) ->           
+    Res = F(),
+    frame(Session, null),
+    Res;
+within_frame(Session,[Frame|Rest], F) ->        
+    {ok, no_content} = frame(Session, Frame) ,
+    within_frame(Session,Rest,F).    
 
 
 webelement_id({struct, [{<<"ELEMENT">>, Id}]}) ->
