@@ -20,7 +20,7 @@ start_selenium_server() ->
                 true -> " -debug";
                 false -> ""
             end,
-    StartCmd = "cd " ++ Path ++ "/priv/selenium; java -jar selenium-server-standalone-2.30.0.jar -browserSessionReuse -log " ++ Log ++ Debug ++ " > /dev/null 2>& 1 &",
+    StartCmd = "cd " ++ Path ++ "/priv/selenium; java -jar selenium-server-standalone-2.35.0.jar -browserSessionReuse -log " ++ Log ++ Debug ++ " > /dev/null 2>& 1 &",
     StartOutput = os:cmd(StartCmd),
     test_selenium_server(?MAX_SERVER_START_RETRIES).
 
@@ -58,7 +58,7 @@ setup_session(Browser) ->
                                    {version, <<"">>},
                                    {platform, 'ANY'}]) of
         {ok, Session} ->
-            io:format("~nsetup_session_OK.~n"),
+            io:format("~nsetup_session_OK~n~p.~n", [Session]),
             %{ok,null} = webdriver_remote:execute(Session, "window.resizeTo(1920,1080);"),
             %% @TODO: make speed boss.config configurable
             %%{error, []} = webdriver_remote:speed(Session, 'SLOW'),

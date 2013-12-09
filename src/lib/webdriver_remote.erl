@@ -65,12 +65,11 @@ session(Host, Port, Capabilities) ->
     application:start(inets),
     Result = post(path({Host,Port,undefined}), to_json([{desiredCapabilities, {struct, Capabilities}}])),
     case Result of
-	{ok, {302, H}} ->
-	    Location = proplists:get_value("location", H),
-%%	    io:format(user,"Location ~p ~n",[Location]),
-	    Id = hd(lists:reverse(string:tokens(Location,"/"))),
-	    {ok, {Host, Port, Id}};
-	E -> E
+    	{ok, {struct, H}} ->
+    	    Id = binary_to_list(proplists:get_value(<<"webdriver.remote.sessionid">>, H)),
+    	    {ok, {Host, Port, Id}};
+    	E ->
+            E
     end.
 
 session(Session) ->
